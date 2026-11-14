@@ -5,12 +5,63 @@
 # RV32I and Zicsr only: no mul, div, rem, no floating point, no compressed
 # instructions. Tests: tests/tgcd.c.
 
+
+# a0 = a
+# #a1 = b
+# t0 = a | b
+# t1 = shift
+
     .text
 
     .globl  gcd_u32_asm
     .type   gcd_u32_asm, @function
     .align  2
 gcd_u32_asm:
-    li      a0, 0
+    beqz    a0, .Lret_b    # a = 0  
+    beqz    a1, .Ldone   # b = 0
+
+    or      t0, a0, a1
+    li      t1, 0   # shift
+
+.Lshift:              
+    andi    t2, t0, 1
+    bnez    t2, .Lshift_done
+    srli    t0, t0, 1 
+    addi    t1, t1, 1
+    j       .Lshift
+.Lshift_done:
+    srl     a0, a0, t1
+    srl     a1, a1, t1
+
+.La:                         
+    andi    t2, a0, 1
+    bnez    t2, .Lmain
+    srli    a0, a0, 1
+    j       .La
+
+.Lmain:       # do while loop                    
+.Lb:                       
+    andi    t2, a1, 1
+    bnez    t2, .Lif
+    srli    a1, a1, 1
+    j       .Lb
+.Lif:
+
+    bgeu    a1, a0, .Lno_swap   
+    mv      t2, a0 # tmp = a
+    mv      a0, a1 # a = b
+    mv      a1, t2 # b = tmp
+
+.Lno_swap:
+    sub     a1, a1, a0
+    bnez    a1, .Lmain
+
+    sll     a0, a0, t1 # a<<= shift
+.Ldone:
     ret
-    .size   gcd_u32_asm, .-gcd_u32_asm
+
+.Lret_b:
+    mv      a0, a1
+    ret
+
+.size gcd_u32_asm, .-gcd_u32_asm
