@@ -17,51 +17,50 @@
     .type   gcd_u32_asm, @function
     .align  2
 gcd_u32_asm:
-    beqz    a0, .Lret_b    # a = 0  
-    beqz    a1, .Ldone   # b = 0
+    beqz a0, .Lret_b    # a = 0
+    beqz a1, .Ldone   # b = 0
 
-    or      t0, a0, a1
-    li      t1, 0   # shift
+    or t0, a0, a1
+    li t1, 0   # shift
 
-.Lshift:              
-    andi    t2, t0, 1
-    bnez    t2, .Lshift_done
-    srli    t0, t0, 1 
-    addi    t1, t1, 1
-    j       .Lshift
+.Lshift:
+    andi t2, t0, 1
+    bnez t2, .Lshift_done
+    srli t0, t0, 1
+    addi t1, t1, 1
+    j .Lshift
 .Lshift_done:
-    srl     a0, a0, t1
-    srl     a1, a1, t1
+    srl a0, a0, t1
+    srl a1, a1, t1
 
-.La:                         
-    andi    t2, a0, 1
-    bnez    t2, .Lmain
-    srli    a0, a0, 1
-    j       .La
+.La:
+    andi t2, a0, 1
+    bnez t2, .Lmain
+    srli a0, a0, 1
+    j .La
 
-.Lmain:       # do while loop                    
-.Lb:                       
-    andi    t2, a1, 1
-    bnez    t2, .Lif
-    srli    a1, a1, 1
-    j       .Lb
+.Lb:
+    srli a1, a1, 1
+.Lmain:       # do while loop
+    andi t2, a1, 1
+    beqz t2, .Lb
 .Lif:
 
-    bgeu    a1, a0, .Lno_swap   
-    mv      t2, a0 # tmp = a
-    mv      a0, a1 # a = b
-    mv      a1, t2 # b = tmp
+    bgeu a1, a0, .Lno_swap
+    mv t2, a0 # tmp = a
+    mv a0, a1 # a = b
+    mv a1, t2 # b = tmp
 
 .Lno_swap:
-    sub     a1, a1, a0
-    bnez    a1, .Lmain
+    sub a1, a1, a0
+    bnez a1, .Lb
 
-    sll     a0, a0, t1 # a<<= shift
+    sll a0, a0, t1 # a<<= shift
 .Ldone:
     ret
 
 .Lret_b:
-    mv      a0, a1
+    mv a0, a1
     ret
 
-.size gcd_u32_asm, .-gcd_u32_asm
+    .size   gcd_u32_asm, .-gcd_u32_asm
